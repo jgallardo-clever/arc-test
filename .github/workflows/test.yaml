@@ -2,7 +2,7 @@ name: Hello World with ARC
 on: workflow_dispatch
 jobs:
   hello-world:
-    runs-on: self-hosted
+    runs-on: arc-runner-local
     steps:
       - name: Hello World
         run: echo "Hello, World!"
