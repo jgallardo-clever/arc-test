@@ -11,11 +11,11 @@ if (Test-Path ".env") {
     Get-Content ".env" | ForEach-Object {
         if ($_ -match '^\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(.*)$' -and $_ -notmatch '^#') {
             $name, $value = $matches[1], $matches[2]
-            $value = $value -replace '^["'\'']|["'\'']$', ''  # Remove quotes
+            $value = $value.Trim().Trim('"').Trim("'")
             
-            # Only assign if the parameter was not passed explicitly
-            if ((Get-Variable -Name $name -ErrorAction SilentlyContinue) -eq $null -or (Get-Variable -Name $name).Value -eq $null) {
-                Set-Variable -Name $name -Value $value -Scope Global
+            # Only assign if the parameter was not passed explicitly (is empty)
+            if ([string]::IsNullOrEmpty((Get-Variable -Name $name -ErrorAction SilentlyContinue).Value)) {
+                Set-Variable -Name $name -Value $value
             }
         }
     }
@@ -55,4 +55,30 @@ catch {
   exit 1
 }
 
-Write-Host "Uninstallation process completed."
+Write-Host "Cleaning up namespaces..."
+Write-Host "Waiting for pods to terminate gracefully..."
+Start-Sleep -Seconds 5
+
+# Delete the runner namespace
+Write-Host "Deleting namespace: $NAMESPACE_RUNNERS..."
+try {
+  kubectl delete namespace $NAMESPACE_RUNNERS --ignore-not-found=true
+  Write-Host "Namespace '$NAMESPACE_RUNNERS' deleted successfully."
+}
+catch {
+  Write-Host "Failed to delete namespace '$NAMESPACE_RUNNERS'. You can delete it manually."
+}
+
+# Delete the systems namespace
+Write-Host "Deleting namespace: $NAMESPACE_SYSTEMS..."
+try {
+  kubectl delete namespace $NAMESPACE_SYSTEMS --ignore-not-found=true
+  Write-Host "Namespace '$NAMESPACE_SYSTEMS' deleted successfully."
+}
+catch {
+  Write-Host "Failed to delete namespace '$NAMESPACE_SYSTEMS'. You can delete it manually."
+}
+
+Write-Host ""
+Write-Host "Uninstallation process completed successfully!"
+Write-Host "All GitHub Actions Runner Controller components have been removed from your cluster."

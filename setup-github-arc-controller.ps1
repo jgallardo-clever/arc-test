@@ -14,11 +14,11 @@ if (Test-Path ".env") {
     Get-Content ".env" | ForEach-Object {
         if ($_ -match '^\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*(.*)$' -and $_ -notmatch '^#') {
             $name, $value = $matches[1], $matches[2]
-            $value = $value -replace '^["'\'']|["'\'']$', ''  # Remove quotes
+            $value = $value.Trim().Trim('"').Trim("'")
             
-            # Only assign if the parameter was not passed explicitly
-            if ((Get-Variable -Name $name -ErrorAction SilentlyContinue) -eq $null -or (Get-Variable -Name $name).Value -eq $null) {
-                Set-Variable -Name $name -Value $value -Scope Global
+            # Only assign if the parameter was not passed explicitly (is empty)
+            if ([string]::IsNullOrEmpty((Get-Variable -Name $name -ErrorAction SilentlyContinue).Value)) {
+                Set-Variable -Name $name -Value $value
             }
         }
     }
@@ -61,7 +61,8 @@ try {
   helm install arc `
   --namespace $NAMESPACE_SYSTEMS `
   --create-namespace `
-  --set oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set-controller
+  oci://ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set-controller
+  Write-Host "GitHub Actions Runner Controller installed successfully."
 }
 catch {
   Write-Host "GitHub Actions Runner Controller is already installed. Continuing..."
