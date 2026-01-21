@@ -82,6 +82,9 @@ gcloud auth login
 # Set your project ID
 gcloud config set project <project-id>
 
+# Install Plugin Auth (if not already installed)
+gcloud components install gke-gcloud-auth-plugin
+
 # Get credentials for your GKE cluster
 gcloud container clusters get-credentials <cluster-name> --region <region>
 
@@ -144,6 +147,11 @@ Execute the installation script using one of the following methods:
   -MIN_RUNNERS 3
 ```
 
+**Option 4: Single Namespace Installation (Require a pre-existing namespace)**
+```powershell
+.\setup-github-arc-controller-one-ns.ps1
+```
+
 ### Step 3: Verify Installation
 
 After the setup completes successfully, verify the installation:
@@ -161,6 +169,8 @@ kubectl get pods -n arc-runners
 # View runner logs
 kubectl logs -n arc-runners -l app.kubernetes.io/component=runner
 ```
+
+> In the case of single namespace installation, use the single namespace name instead of `arc-systems` and `arc-runners`.
 
 ## Uninstallation Instructions
 
